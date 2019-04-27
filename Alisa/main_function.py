@@ -11,7 +11,7 @@ def handle_dialog(request, response, user_storage, database):
     if request.is_new_session or response.end_session:
         output_message = "Здравствуйте, Вас приветствует Ваш коммуникатор Адель." \
                          " Чтобы перейти к работе просто скажите мне свой логин и пароль через пробел."
-        if response.end_session == True:
+        if response.end_session:
             user_storage = {'suggests': [x[2] for x in database.get_users(request.user_id)]
                             }
         return message_return(response, user_storage, output_message)
@@ -23,6 +23,7 @@ def handle_dialog(request, response, user_storage, database):
         user_storage = {'suggests': [
         ]}
         response.end_session = False
+        response._response_dict['response']['end_session'] = response.end_session
         return message_return(response, user_storage, output_message)
 
     if not database.get_users(request.user_id):

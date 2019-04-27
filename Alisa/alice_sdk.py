@@ -31,11 +31,12 @@ class AliceRequest(object):
 
 class AliceResponse(object):
     def __init__(self, alice_request):
+        self.end_session = False
         self._response_dict = {
             "version": alice_request.version,
             "session": alice_request.session,
             "response": {
-                "end_session": False
+                "end_session": self.end_session
             }
         }
 
@@ -54,6 +55,7 @@ class AliceResponse(object):
 
     def set_buttons(self, buttons):
         self._response_dict['response']['buttons'] = buttons
+
 
     def __str__(self):
         return self.dumps()
