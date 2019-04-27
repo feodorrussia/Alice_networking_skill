@@ -20,7 +20,7 @@ class DatabaseManager:
     def __del__(self):
         self.connection.close()
 
-    def get_users(self, user_id: str = '', get_all: bool = False)->list:
+    def get_users(self, user_id: str = '', get_all: bool = False) -> list:
         cursor = self.connection.cursor()
         result = []
         try:
@@ -39,26 +39,26 @@ class DatabaseManager:
         cursor.close()
         return result
 
-    def get_individ(self, user_name: str = '', password: str = '')->bool:
+    def get_individ(self, user_id: str, user_name: str = '', password: str = '') -> list:
         cursor = self.connection.cursor()
         try:
             cursor.execute("""SELECT * FROM users
-                                                    WHERE user_name = :user_name, password = :password""",
+                                WHERE user_id = :user_id, user_name = :user_name, password = :password""",
                            {
-                               'user_name': user_name, 'password': password
+                               'user_id': user_id, 'user_name': user_name, 'password': password
                            })
         except sqlite3.DatabaseError as error:
             print('Error: ', error)
-            cursor.close()
-            return False
+            result = [False, []]
         else:
-            cursor.close()
-            return True
+            result = [True].append(cursor.fetchall())
+        cursor.close()
+        return result
 
     def add_user(self, user_id: str, user_name: str = '', password: str = '') -> bool:
         cursor = self.connection.cursor()
         try:
-            if not self.get_individ(user_name, password):
+            if not self.get_individ(user_name, password)[0]:
                 cursor.execute("""INSERT INTO users 
                                 VALUES(:user_id, :user_name, :password)""", {
                     'user_id': user_id, 'user_name': user_name, 'password': password})
