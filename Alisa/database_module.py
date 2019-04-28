@@ -42,19 +42,22 @@ class DatabaseManager:
     def get_individ(self, user_id: str, user_name: str = '', password: str = '') -> list:
         cursor = self.connection.cursor()
         try:
-            cursor.execute("""SELECT * FROM users WHERE user_id = ?""", (user_id))
-            user=cursor.fetchall()
-            if user_name!=user[1] or password!=user[2]:
-                result = [False, False]
+            cursor.execute("""SELECT * FROM users WHERE user_id = :user_id""", {'user_id': user_id})
         except sqlite3.DatabaseError as error:
             print('Error: ', error, '2')
             result = [False, True]
         else:
-            if len(cursor.fetchall())==1:
-                result = [True]+[cursor.fetchall()]
+            user=cursor.fetchall()
+            print(user)
+            if len(user)==1:
+                if user_name!=user[0][1] or password!=user[0][2]:
+                    result = [True, False]
+                else:
+                    result = [True, user]
             else:
                 result = [False, True]
         cursor.close()
+        print(result)
         return result
 
     def add_user(self, user_id: str, user_name: str = '', password: str = '') -> bool:
