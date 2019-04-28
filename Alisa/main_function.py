@@ -47,6 +47,7 @@ def handle_dialog(request, response, user_storage, database):
         return message_return(response, user_storage, output_message)
 
     if input_message == 'помощь':
+        uppdate_status_sistem('help')
         output_message = "Привет! Я Адель, Ваш коммуникатор. Я помогу Вам отправить сообщение " \
                          "Вашему другу или разместить его в группе."
         user_storage = {'suggests': ['Мои возможности', 'Команды быстрого ввода', 'Главная']}
@@ -54,6 +55,7 @@ def handle_dialog(request, response, user_storage, database):
 
     if input_message == 'главная':
         output_message = "Прошу)"
+        uppdate_status_sistem('in')
         if read_answers_data("data/status")['global_status'] == 'out':
             user_storage = {'suggests': ['Помощь', 'Войти']}
         else:
