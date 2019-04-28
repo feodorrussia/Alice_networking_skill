@@ -16,8 +16,9 @@ def handle_dialog(request, response, user_storage, database):
         uppdate_status_sistem('out')
         return message_return(response, user_storage, output_message)
 
-    if len(request.command.split(' ')) == 2 and read_answers_data("data/status")['global_status'] == 'out':
-        input_message=request.command.split(' ')
+    if len(request.command.split(' ')) == 2 and read_answers_data("data/status")[
+        'global_status'] == 'out':
+        input_message = request.command.split(' ')
         uppdate_status_sistem('in')
         if database.get_individ(request.user_id, input_message[0], input_message[1])[0]:
             output_message = "Добро пожаловать {}!".format(input_message[0])
@@ -33,12 +34,13 @@ def handle_dialog(request, response, user_storage, database):
             ]}
             return message_return(response, user_storage, output_message)
 
-    if request.is_new_session or input_message in ['войти','регистрация']:
+    if request.is_new_session or input_message in ['войти', 'регистрация']:
         output_message = "Здравствуйте, Вас приветствует Ваш коммуникатор Адель." \
                          " Чтобы перейти к работе просто скажите мне свой логин и пароль через пробел."
         user_storage = {'suggests': ['Помощь']}
         return message_return(response, user_storage, output_message)
 
     buttons, user_storage = get_suggests(user_storage)
-    return message_error(response, user_storage, ['Простите за конфуз, я ещё в разработке'
-    ])
+    return message_error(response, user_storage,
+                         ['Простите за конфуз, я ещё в разработке', 'Ой, сейчас исправлю)'
+                          ])
