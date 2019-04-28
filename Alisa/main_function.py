@@ -54,7 +54,10 @@ def handle_dialog(request, response, user_storage, database):
 
     if input_message == 'главная':
         output_message = "Прошу)"
-        user_storage = {'suggests': ['Друзья', 'Группы', 'Помощь', 'Выход']}
+        if read_answers_data("data/status")['global_status'] == 'out':
+            user_storage = {'suggests': ['Помощь', 'Войти']}
+        else:
+            user_storage = {'suggests': ['Друзья', 'Группы', 'Помощь', 'Выход']}
         return message_return(response, user_storage, output_message)
 
     buttons, user_storage = get_suggests(user_storage)
