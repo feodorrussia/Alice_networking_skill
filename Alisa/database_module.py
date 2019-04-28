@@ -14,8 +14,8 @@ class DatabaseManager:
                             (id INTEGER PRIMARY KEY AUTOINCREMENT,
                              user_id VARCHAR(128),
                              user_name VARCHAR(128),
-                             password VARCHAR(128)),
-                             status INTEGER''')
+                             password VARCHAR(128),
+                             status INTEGER)''')
         cursor.close()
 
     def __del__(self):
@@ -62,8 +62,8 @@ class DatabaseManager:
             print('   444   ', self.get_individ(user_id, user_name, password)[0])
             if not self.get_individ(user_id, user_name, password)[0]:
                 cursor.execute('''INSERT INTO users
-                          (user_id, user_name, password)
-                          VALUES (?,?,?)''',
+                          (user_id, user_name, password, status)
+                          VALUES (?,?,?,1)''',
                        (user_id, user_name, password))
                 print('Регистрация пользователя {}{}.'.format(user_id, user_name))
             else:
@@ -78,12 +78,12 @@ class DatabaseManager:
             cursor.close()
             return True
 
-    def uppdate_status(self, user_id: str, status: int, user_name: str = '', password: str = '') -> bool:
+    def uppdate_status(self, user_id: str, status: int) -> bool:
         cursor = self.connection.cursor()
         try:
             cursor.execute("""UPDATE users
                                 SET status = ?
-                                WHERE user_id = ? AND user_name = ? AND password = ?""", (status, user_id, user_name, password))
+                                WHERE user_id = ? """, (status, user_id))
         except sqlite3.DatabaseError as error:
             print('Error: ', error)
             cursor.close()

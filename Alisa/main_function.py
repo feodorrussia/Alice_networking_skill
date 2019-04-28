@@ -12,11 +12,13 @@ def handle_dialog(request, response, user_storage, database):
     if input_message in ['выйти']:
         output_message = "Обращайтесь ещё!)"
         user_storage = {'suggests': ['Помощь', 'Войти']}
-        database.uppdate_status()
+        database.uppdate_status(0, request.user_id)
+        uppdate_status_sistem('out')
         return message_return(response, user_storage, output_message)
 
     if len(request.command.split(' ')) == 2 and read_answers_data("data/status")['global_status'] == 'out':
         input_message=request.command.split(' ')
+        uppdate_status_sistem('in')
         if database.get_individ(request.user_id, input_message[0], input_message[1])[0]:
             output_message = "Добро пожаловать {}!".format(input_message[0])
             user_storage = {'suggests': [
