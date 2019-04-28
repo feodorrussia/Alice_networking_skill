@@ -26,11 +26,14 @@ def handle_dialog(request, response, user_storage, database):
             ]}
             return message_return(response, user_storage, output_message)
         else:
-            database.add_user(request.user_id, input_message[0], input_message[1])
-            output_message = "Добро пожаловать {}!".format(input_message[0])
-            user_storage = {'suggests': [
-                'Друзья', 'Группы', 'Помощь', 'Выход'
-            ]}
+            if database.get_individ(request.user_id, input_message[0], input_message[1])[1]:
+                database.add_user(request.user_id, input_message[0], input_message[1])
+                output_message = "Добро пожаловать {}!".format(input_message[0])
+                user_storage = {'suggests': [
+                    'Друзья', 'Группы', 'Помощь', 'Выход'
+                ]}
+            else:
+                output_message = "Упс! Похоже Вы неправильно ввели свои данные. Попробуйте ещё раз)"
             return message_return(response, user_storage, output_message)
 
     if request.is_new_session or input_message in ['войти', 'регистрация']:

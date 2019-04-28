@@ -11,8 +11,7 @@ class DatabaseManager:
         cursor = self.connection.cursor()
         cursor.execute('PRAGMA foreign_key=1')
         cursor.execute('''CREATE TABLE IF NOT EXISTS users
-                            (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                             user_id VARCHAR(128),
+                            (user_id VARCHAR(128) PRIMARY KEY ,
                              user_name VARCHAR(128),
                              password VARCHAR(128),
                              status INTEGER)''')
@@ -43,30 +42,31 @@ class DatabaseManager:
     def get_individ(self, user_id: str, user_name: str = '', password: str = '') -> list:
         cursor = self.connection.cursor()
         try:
-            cursor.execute("""SELECT * FROM users WHERE user_id = ? AND user_name = ? AND password = ?""", (user_id, user_name, password))
+            cursor.execute("""SELECT * FROM users WHERE user_id = ?""", (user_id))
+            user=cursor.fetchall()
+            if user_name!=user[1] or password!=user[2]:
+                result = [False, False]
         except sqlite3.DatabaseError as error:
             print('Error: ', error, '2')
-            result = [False, []]
+            result = [False, True]
         else:
             if len(cursor.fetchall())==1:
                 result = [True]+[cursor.fetchall()]
             else:
-                result = [False, []]
-        print('   444   ', result)
+                result = [False, True]
         cursor.close()
         return result
 
     def add_user(self, user_id: str, user_name: str = '', password: str = '') -> bool:
         cursor = self.connection.cursor()
         try:
-            print('   444   ', self.get_individ(user_id, user_name, password)[0])
             if not self.get_individ(user_id, user_name, password)[0]:
                 cursor.execute('''INSERT INTO users
                           (user_id, user_name, password, status)
                           VALUES (?,?,?,1)''',
                        (user_id, user_name, password))
                 print('Регистрация пользователя {}{}.'.format(user_id, user_name))
-            else:
+            elif self.get_individ(user_id, user_name, password)[1]:
                 print('Произведен вход пользователя {}{}.'.format(user_id, user_name))
                 cursor.close()
                 return False
