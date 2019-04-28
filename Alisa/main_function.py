@@ -4,12 +4,11 @@ from little_fuctions import *
 
 
 def handle_dialog(request, response, user_storage, database):
-    from random import choice
     if not user_storage:
-        user_storage = {"suggests": []}
+        user_storage = {"suggests": ['Помощь']}
     input_message = request.command.lower()
 
-    if input_message in ['выйти']:
+    if input_message in ['выйти', 'выход']:
         output_message = "Обращайтесь ещё!)"
         user_storage = {'suggests': ['Помощь', 'Войти']}
         database.uppdate_status(0, request.user_id)
@@ -40,7 +39,13 @@ def handle_dialog(request, response, user_storage, database):
         user_storage = {'suggests': ['Помощь']}
         return message_return(response, user_storage, output_message)
 
+    if input_message == 'помощь':
+        output_message = "Привет! Я Адель, Ваш коммуникатор. Я помогу Вам отправить сообщение " \
+                         "Вашему другу или разместить его в группе."
+        user_storage = {'suggests': ['Мои возможности', 'Команды быстрого ввода', 'Главная']}
+        return message_return(response, user_storage, output_message)
+
     buttons, user_storage = get_suggests(user_storage)
     return message_error(response, user_storage,
-                         ['Простите за конфуз, я ещё в разработке', 'Ой, сейчас исправлю)'
+                         ['Конфуз;) Я ещё в разработке', 'Ой, сейчас исправлю)'
                           ])
