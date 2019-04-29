@@ -45,7 +45,7 @@ def message_error(response, user_storage, answer):
 def read_answers_data(name: str) -> dict:
     return json.load(open(name + ".json", encoding="utf-8"))
 
-def uppdate_status_sistem(new: str, type: str = 'global_status'):
+def update_status_system(new: str, type: str = 'global_status'):
     f = json.load(open('data/status' + ".json", encoding="utf-8"))
     f[type] = new
     json.dump(f, open('data/status' + ".json", 'w', encoding="utf-8"))

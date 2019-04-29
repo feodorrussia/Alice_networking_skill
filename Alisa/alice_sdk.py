@@ -20,14 +20,14 @@ class AliceRequest(object):
     @property
     def is_new_session(self):
         return bool(self.session['new'])
-    
+
     @property
     def command(self):
         return self._request_dict['request']['command']
 
     def __str__(self):
         return str(self._request_dict)
-    
+
 
 class AliceResponse(object):
     def __init__(self, alice_request):
@@ -50,12 +50,11 @@ class AliceResponse(object):
     def set_text(self, text):
         self._response_dict['response']['text'] = text[:1024]
 
-    def set_tts(self,text):
+    def set_tts(self, text):
         self._response_dict["response"]['tts'] = text[:1024]
 
     def set_buttons(self, buttons):
         self._response_dict['response']['buttons'] = buttons
-
 
     def __str__(self):
         return self.dumps()
