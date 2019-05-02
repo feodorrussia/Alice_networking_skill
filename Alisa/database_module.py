@@ -17,6 +17,10 @@ class DatabaseManager:
         cursor.execute('''CREATE TABLE IF NOT EXISTS friends
                                     (user_name1 VARCHAR(128),
                                      user_name2 VARCHAR(128))''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS messages
+                                            (user_name1 VARCHAR(128),
+                                             message VARCHAR(128),
+                                             user_name2 VARCHAR(128))''')
         cursor.close()
 
     def __del__(self):
@@ -124,6 +128,25 @@ class DatabaseManager:
                                   (user_name1, user_name2)
                                   VALUES (?,?)''',
                                (user_name1, user_name2))
+                print('Регистрация пользователя {}.'.format(user_name1))
+            else:
+                return False
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '3')
+            cursor.close()
+            return False
+        else:
+            cursor.close()
+            return True
+
+    def add_message(self, user_name1, message, user_name2):
+        cursor = self.connection.cursor()
+        try:
+            if not self.get_friendship(user_name1)[0]:
+                cursor.execute('''INSERT INTO messages
+                                  (user_name1, message, user_name2)
+                                  VALUES (?,?,?)''',
+                               (user_name1, message, user_name2))
                 print('Регистрация пользователя {}.'.format(user_name1))
             else:
                 return False

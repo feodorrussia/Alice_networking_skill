@@ -123,6 +123,36 @@ def handle_dialog(request, response, user_storage, database):
             update_status_system('end_adding', 'status_action')
         return message_return(response, user_storage, output_message)
 
+    if read_answers_data("data/status")['status_action'] == 'end_adding':
+        if input_message == 'да':
+            output_message = 'Я готова, пишите сообщение!'
+            user_storage = {'suggests': ['Отмена', 'Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+            update_status_system('sending_letter', 'status_action')
+        else:
+            output_message = 'Хорошо, рада была помочь Вам!'
+            user_storage = {'suggests': ['Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+            update_status_system('working', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if read_answers_data("data/status")['status_action'] == 'sending_letter' and input_message!='отмена':
+        database.add_message(read_answers_data("data/status")['user_name'], request.command, read_answers_data("data/status")['recipient_name'])
+        output_message = 'Ваше сообщение отправлено!'
+        user_storage = {'suggests': ['Распечатать историю сообщений', 'Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+        update_status_system('chating', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if input_message == 'написать сообщение' and read_answers_data("data/status")['status_action'] == 'working':
+        output_message = 'Хорошо, скажите кому мне написать сообщение'
+        user_storage = {'suggests': ['Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+        update_status_system('connect_recipient', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if read_answers_data("data/status")['status_action'] == 'connect_recipient' and input_message!='отмена':
+        output_message = 'Я готова, пишите сообщение!'
+        user_storage = {'suggests': ['Отмена', 'Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+        update_status_system('sending_letter', 'status_action')
+        return message_return(response, user_storage, output_message)
+
     buttons, user_storage = get_suggests(user_storage)
     return message_error(response, user_storage,
                          ['Конфуз;) Я ещё в разработке', 'Ой, сейчас исправлю)'
