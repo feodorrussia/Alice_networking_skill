@@ -88,14 +88,14 @@ class DatabaseManager:
             cursor.close()
             return True
 
-    def update_status(self, user_id: str, status: int) -> bool:
+    def update_status(self, user_name: str, status: int) -> bool:
         cursor = self.connection.cursor()
         try:
             cursor.execute("""UPDATE users
                                 SET status = ?
-                                WHERE user_id = ? """, (status, user_id))
+                                WHERE user_name = ? """, (status, user_name))
         except sqlite3.DatabaseError as error:
-            print('Error: ', error)
+            print('       !!!!!!!!!!!!!!!!!Error: ', error)
             cursor.close()
             return False
         else:
@@ -142,14 +142,11 @@ class DatabaseManager:
     def add_message(self, user_name1, message, user_name2):
         cursor = self.connection.cursor()
         try:
-            if not self.get_friendship(user_name1)[0]:
-                cursor.execute('''INSERT INTO messages
-                                  (user_name1, message, user_name2)
-                                  VALUES (?,?,?)''',
+            cursor.execute('''INSERT INTO messages
+                                (user_name1, message, user_name2)
+                                VALUES (?,?,?)''',
                                (user_name1, message, user_name2))
-                print('Пользователь {} написал {}.'.format(user_name1, user_name2))
-            else:
-                return False
+            print('Пользователь {} написал {}.'.format(user_name1, user_name2))
         except sqlite3.DatabaseError as error:
             print('Error: ', error, '5')
             cursor.close()
@@ -169,5 +166,6 @@ class DatabaseManager:
             cursor.close()
             return [False, []]
         else:
+            dialog=cursor.fetchall()
             cursor.close()
-            return [True, cursor.fetchall()]
+            return [True, dialog]
