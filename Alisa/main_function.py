@@ -19,7 +19,7 @@ def handle_dialog(request, response, user_storage, database):
         'global_status'] == 'out':
         input_message = request.command.split(' ')
         if database.get_registration(input_message[0], input_message[1])[0]:
-            if database.get_individ(input_message[0], input_message[1])[1]:
+            if database.get_registration(input_message[0], input_message[1])[1]:
                 output_message = "Добро пожаловать {}!".format(input_message[0])
                 user_storage = {'suggests': [
                     'Друзья', 'Группы', 'Найти', 'Помощь', 'Выход'
@@ -93,10 +93,10 @@ def handle_dialog(request, response, user_storage, database):
     if read_answers_data("data/status")['status_action'] == 'searching_user' and input_message!='отмена':
         friend=database.get_user(input_message)
         if friend[0]:
-            output_message = f"Ура!\nЯ нашла Вашего друга!\nХотите добавить его в друзья?\n({friend[1][0], friend[1][2]})"
+            output_message = f"Ура!\nЯ нашла Вашего друга!\nХотите добавить его в друзья?\n({friend[1][0][0]}{'в сети' if friend[1][0][2]==1 else 'не в сети'})"
             user_storage = {'suggests': ['Да', 'Нет']}
             update_status_system('adding_friendship', 'status_action')
-            update_status_system(friend[1][0], 'recipient_name')
+            update_status_system(friend[1][0][0], 'recipient_name')
         else:
             output_message = "Простите, мне не удалось найти пользователя по Вашему запросу("
             user_storage = {'suggests': ['Попробовать ещё раз', 'Отбой, давай на главную', 'Вернись в друзья']}
@@ -105,14 +105,14 @@ def handle_dialog(request, response, user_storage, database):
 
     if read_answers_data("data/status")['status_action'] == 'adding_friendship':
         if input_message=='да':
-            result=database.add_friendship(read_answers_data("data/status")['user_name'], read_answers_data("data/status")['recipient_name'])
+            result=database.add_friendship(str(read_answers_data("data/status")['user_name']), str(read_answers_data("data/status")['recipient_name']))
             if result:
                 output_message = f'''Отлично! Теперь у Вас в друзьях есть {read_answers_data("data/status")['recipient_name']}\nХотите написать ему?'''
-                user_storage = {'suggests': ['Да', 'Нет']}
+                user_storage = {'suggests': ['Да', 'Нет', 'Главная']}
                 update_status_system('end_adding', 'status_action')
             else:
                 output_message = f'''У меня для Вас хорошая новость-{read_answers_data("data/status")['recipient_name']} уже есть у Вас в друзьях!Хотите написать ему?'''
-                user_storage = {'suggests': ['Да', 'Нет']}
+                user_storage = {'suggests': ['Да', 'Нет', 'Главная']}
                 update_status_system('end_adding', 'status_action')
         else:
             output_message = 'Хорошо, рада была помочь Вам!'

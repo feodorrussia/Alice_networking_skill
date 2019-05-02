@@ -122,7 +122,7 @@ class DatabaseManager:
             if not self.get_friendship(user_name1)[0]:
                 cursor.execute('''INSERT INTO friends
                                   (user_name1, user_name2)
-                                  VALUES (?,?,?,1)''',
+                                  VALUES (?,?)''',
                                (user_name1, user_name2))
                 print('Регистрация пользователя {}.'.format(user_name1))
             else:
