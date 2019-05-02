@@ -75,7 +75,7 @@ class DatabaseManager:
                           (user_name, password, status)
                           VALUES (?,?,1)''',
                                (user_name, password))
-                print('Регистрация пользователя {}.'.format(user_name))
+                print('Регистрация пользователя {} прошла успешно.'.format(user_name))
             elif self.get_registration(user_name, password)[1]:
                 print('Произведен вход пользователя {}.'.format(user_name))
                 cursor.close()
@@ -128,11 +128,11 @@ class DatabaseManager:
                                   (user_name1, user_name2)
                                   VALUES (?,?)''',
                                (user_name1, user_name2))
-                print('Регистрация пользователя {}.'.format(user_name1))
+                print('Пользователь {} добавил в друзья {}.'.format(user_name1, user_name2))
             else:
                 return False
         except sqlite3.DatabaseError as error:
-            print('Error: ', error, '3')
+            print('Error: ', error, '4')
             cursor.close()
             return False
         else:
@@ -147,11 +147,11 @@ class DatabaseManager:
                                   (user_name1, message, user_name2)
                                   VALUES (?,?,?)''',
                                (user_name1, message, user_name2))
-                print('Регистрация пользователя {}.'.format(user_name1))
+                print('Пользователь {} написал {}.'.format(user_name1, user_name2))
             else:
                 return False
         except sqlite3.DatabaseError as error:
-            print('Error: ', error, '3')
+            print('Error: ', error, '5')
             cursor.close()
             return False
         else:
