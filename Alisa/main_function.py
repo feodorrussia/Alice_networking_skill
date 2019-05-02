@@ -100,12 +100,11 @@ def handle_dialog(request, response, user_storage, database):
             return message_return(response, user_storage, output_message)
         friend = database.get_user(request.command)
         if friend[0]:
-            output_message = f"Ура!\nЯ нашла Вашего друга!\nХотите добавить его в друзья?\n({
-            friend[1][0][0]}{' (в сети)' if friend[1][0][2] == 1 else ' (не в сети)'})"
+            output_message = f"Ура!\nЯ нашла Вашего друга!\nХотите добавить его в друзья?\n({friend[1][0][0]}{' (в сети)' if friend[1][0][2] == 1 else ' (не в сети)'})"
             user_storage = {'suggests': ['Да', 'Нет']}
             update_status_system('adding_friendship', 'status_action')
             update_status_system(friend[1][0][0], 'recipient_name')
-            else:
+        else:
             output_message = "Простите, мне не удалось найти пользователя по Вашему запросу("
             user_storage = {
                 'suggests': ['Попробовать ещё раз', 'Отбой, давай на главную', 'Вернись в друзья']}
