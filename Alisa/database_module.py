@@ -14,12 +14,15 @@ class DatabaseManager:
                             (user_name VARCHAR(128) PRIMARY KEY,
                              password VARCHAR(128),
                              status INTEGER)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS friends
+                                    (user_name1 VARCHAR(128),
+                                     user_name2 VARCHAR(128))''')
         cursor.close()
 
     def __del__(self):
         self.connection.close()
 
-    def get_individ(self, user_name: str = '', password: str = '') -> list:
+    def get_user(self, user_name):
         cursor = self.connection.cursor()
         try:
             cursor.execute("""SELECT * FROM users WHERE user_name = :user_name""",
@@ -31,7 +34,26 @@ class DatabaseManager:
             user = cursor.fetchall()
             print(user)
             if len(user) == 1:
-                if password != user[0][2]:
+                result = [True, user]
+            else:
+                result = [False, True]
+        cursor.close()
+        print(result)
+        return result
+
+    def get_registration(self, user_name: str = '', password: str = '') -> list:
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("""SELECT * FROM users WHERE user_name = :user_name""",
+                           {'user_name': user_name})
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '2')
+            result = [False, True]
+        else:
+            user = cursor.fetchall()
+            print(user)
+            if len(user) == 1:
+                if password != user[0][1]:
                     result = [True, False]
                 else:
                     result = [True, user]
@@ -41,16 +63,16 @@ class DatabaseManager:
         print(result)
         return result
 
-    def add_user(self, user_id: str, user_name: str = '', password: str = '') -> bool:
+    def add_user(self, user_name: str = '', password: str = '') -> bool:
         cursor = self.connection.cursor()
         try:
-            if not self.get_individ(user_name, password)[0]:
+            if not self.get_registration(user_name, password)[0]:
                 cursor.execute('''INSERT INTO users
-                          (user_id, user_name, password, status)
-                          VALUES (?,?,?,1)''',
-                               (user_id, user_name, password))
+                          (user_name, password, status)
+                          VALUES (?,?,1)''',
+                               (user_name, password))
                 print('Регистрация пользователя {}.'.format(user_name))
-            elif self.get_individ(user_name, password)[1]:
+            elif self.get_registration(user_name, password)[1]:
                 print('Произведен вход пользователя {}.'.format(user_name))
                 cursor.close()
                 return False
@@ -70,6 +92,43 @@ class DatabaseManager:
                                 WHERE user_id = ? """, (status, user_id))
         except sqlite3.DatabaseError as error:
             print('Error: ', error)
+            cursor.close()
+            return False
+        else:
+            cursor.close()
+            return True
+
+    def get_friendship(self, user_name1):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("""SELECT * FROM friends WHERE user_name1 = :user_name1""",
+                           {'user_name1': user_name1})
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '2')
+            result = [False, True]
+        else:
+            friendship = cursor.fetchall()
+            if len(friendship) == 1:
+                result = [True, friendship]
+            else:
+                result = [False, True]
+        cursor.close()
+        print(result)
+        return result
+
+    def add_friendship(self, user_name1, user_name2):
+        cursor = self.connection.cursor()
+        try:
+            if not self.get_friendship(user_name1)[0]:
+                cursor.execute('''INSERT INTO friends
+                                  (user_name1, user_name2)
+                                  VALUES (?,?,?,1)''',
+                               (user_name1, user_name2))
+                print('Регистрация пользователя {}.'.format(user_name1))
+            else:
+                return False
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '3')
             cursor.close()
             return False
         else:

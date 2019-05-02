@@ -11,30 +11,34 @@ def handle_dialog(request, response, user_storage, database):
     if input_message in ['выйти', 'выход']:
         output_message = "Обращайтесь ещё!)"
         user_storage = {'suggests': ['Помощь', 'Войти']}
-        database.uppdate_status(0, request.user_id)
+        database.update_status(0, request.user_id)
         update_status_system('out')
         return message_return(response, user_storage, output_message)
 
     if len(request.command.split(' ')) == 2 and read_answers_data("data/status")[
         'global_status'] == 'out':
         input_message = request.command.split(' ')
-        if database.get_individ(input_message[0], input_message[1])[0]:
-            if database.get_individ(request.user_id, input_message[0], input_message[1])[1]:
+        if database.get_registration(input_message[0], input_message[1])[0]:
+            if database.get_individ(input_message[0], input_message[1])[1]:
                 output_message = "Добро пожаловать {}!".format(input_message[0])
                 user_storage = {'suggests': [
-                    'Друзья', 'Группы', 'Помощь', 'Выход'
+                    'Друзья', 'Группы', 'Найти', 'Помощь', 'Выход'
                 ]}
                 update_status_system('in')
+                update_status_system(input_message[0], 'user_name')
+                update_status_system('working', 'status_action')
             else:
                 output_message = "Упс! Похоже Вы неправильно ввели свои данные. Попробуйте ещё раз)"
             return message_return(response, user_storage, output_message)
         else:
-            database.add_user(request.user_id, input_message[0], input_message[1])
+            database.add_user(input_message[0], input_message[1])
             output_message = "Добро пожаловать {}!".format(input_message[0])
             user_storage = {'suggests': [
                 'Друзья', 'Группы', 'Помощь', 'Выход'
             ]}
             update_status_system('in')
+            update_status_system(input_message[0], 'user_name')
+            update_status_system('working', 'status_action')
             return message_return(response, user_storage, output_message)
 
     if request.is_new_session or input_message in ['войти', 'регистрация']:
@@ -42,6 +46,7 @@ def handle_dialog(request, response, user_storage, database):
                          " Чтобы перейти к работе просто скажите мне свой логин и пароль через пробел."
         user_storage = {'suggests': ['Помощь']}
         update_status_system('out')
+        update_status_system('login', 'status_action')
         return message_return(response, user_storage, output_message)
 
     if input_message == 'помощь':
@@ -49,15 +54,70 @@ def handle_dialog(request, response, user_storage, database):
         output_message = "Привет! Я Адель, Ваш коммуникатор. Я помогу Вам отправить сообщение " \
                          "Вашему другу или разместить его в группе."
         user_storage = {'suggests': ['Мои возможности', 'Команды быстрого ввода', 'Главная']}
+        update_status_system('working', 'status_action')
         return message_return(response, user_storage, output_message)
 
-    if input_message == 'главная':
+    if input_message in ['глвная', 'отбой, давай на главную']:
         output_message = "Прошу)"
         update_status_system('in')
         if read_answers_data("data/status")['global_status'] == 'out':
             user_storage = {'suggests': ['Помощь', 'Войти']}
         else:
             user_storage = {'suggests': ['Друзья', 'Группы', 'Помощь', 'Выход']}
+        update_status_system('working', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if input_message in ['друзья', 'вернись в друзья'] and read_answers_data("data/status")['global_status'] == 'in':
+        friendship=database.get_friendship(read_answers_data("data/status")['user_name'])
+        if friendship[0]:
+            output_message = "Ваши друзья:\n" + friendship[1]
+            user_storage = {'suggests': ['Написать сообщение', 'Главная']}
+        else:
+            output_message = "Похоже у Вас нет друзей.(\nНо вы их всегда можете найти)"
+            user_storage = {'suggests': ['Найти', 'Главная']}
+        update_status_system('working', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if input_message in ['найти', 'найди'] and read_answers_data("data/status")['global_status'] == 'in':
+        output_message = "Хорошо.\nПоскажите, Вам найти друга или группу?"
+        user_storage = {'suggests': ['Человека', 'Группу', 'Главная']}
+        update_status_system('searching', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if read_answers_data("data/status")['status_action'] == 'searching' and input_message in ['человека', 'найди человека', 'друга', 'найди друга']:
+        output_message = "Хорошо.\nСкажите мне его имя его учётной записи(логин в системе)"
+        user_storage = {'suggests': ['Главная', 'Отмена']}
+        update_status_system('searching_user', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if read_answers_data("data/status")['status_action'] == 'searching_user' and input_message!='отмена':
+        friend=database.get_user(input_message)
+        if friend[0]:
+            output_message = f"Ура!\nЯ нашла Вашего друга!\nХотите добавить его в друзья?\n({friend[1][0], friend[1][2]})"
+            user_storage = {'suggests': ['Да', 'Нет']}
+            update_status_system('adding_friendship', 'status_action')
+            update_status_system(friend[1][0], 'recipient_name')
+        else:
+            output_message = "Простите, мне не удалось найти пользователя по Вашему запросу("
+            user_storage = {'suggests': ['Попробовать ещё раз', 'Отбой, давай на главную', 'Вернись в друзья']}
+            update_status_system('searching_error', 'status_action')
+        return message_return(response, user_storage, output_message)
+
+    if read_answers_data("data/status")['status_action'] == 'adding_friendship':
+        if input_message=='да':
+            result=database.add_friendship(read_answers_data("data/status")['user_name'], read_answers_data("data/status")['recipient_name'])
+            if result:
+                output_message = f'''Отлично! Теперь у Вас в друзьях есть {read_answers_data("data/status")['recipient_name']}\nХотите написать ему?'''
+                user_storage = {'suggests': ['Да', 'Нет']}
+                update_status_system('end_adding', 'status_action')
+            else:
+                output_message = f'''У меня для Вас хорошая новость-{read_answers_data("data/status")['recipient_name']} уже есть у Вас в друзьях!Хотите написать ему?'''
+                user_storage = {'suggests': ['Да', 'Нет']}
+                update_status_system('end_adding', 'status_action')
+        else:
+            output_message = 'Хорошо, рада была помочь Вам!'
+            user_storage = {'suggests': ['Друзья', 'Группы', 'Помощь', 'Главная']}
+            update_status_system('end_adding', 'status_action')
         return message_return(response, user_storage, output_message)
 
     buttons, user_storage = get_suggests(user_storage)
