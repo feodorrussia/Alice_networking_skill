@@ -9,13 +9,12 @@ def handle_dialog(request, response, user_storage, database):
     input_message = request.command.lower()
     print("           result111000       ", database.get_session(all=True))
 
-    if request.user_id not in database.get_session(all=True)[0]:
+    if request.user_id not in database.get_session(all=True):
         database.add_session(request.user_id)
 
     if input_message in ['выйти', 'выход']:
         output_message = "Обращайтесь ещё!)"
         user_storage = {'suggests': ['Помощь', 'Войти']}
-        print("           result!!!       ", database.get_session(request.user_id, 'user_name')[0])
         database.update_status(database.get_session(request.user_id, 'user_name')[0], 0)
         database.update_status_system('out', request.user_id)
         database.update_status_system('login', request.user_id, 'status_action')
