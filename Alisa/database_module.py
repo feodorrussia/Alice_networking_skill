@@ -15,12 +15,13 @@ class DatabaseManager:
                              password VARCHAR(128),
                              status INTEGER)''')
         cursor.execute('''CREATE TABLE IF NOT EXISTS friends
-                                    (user_name1 VARCHAR(128),
-                                     user_name2 VARCHAR(128))''')
+                            (user_name1 VARCHAR(128),
+                            user_name2 VARCHAR(128))''')
         cursor.execute('''CREATE TABLE IF NOT EXISTS messages
-                                            (user_name1 VARCHAR(128),
-                                             message VARCHAR(128),
-                                             user_name2 VARCHAR(128))''')
+                            (user_name1 VARCHAR(128),
+                            message VARCHAR(128),
+                            user_name2 VARCHAR(128),
+                            status INTEGER)''')
         cursor.close()
 
     def __del__(self):
@@ -144,7 +145,7 @@ class DatabaseManager:
         try:
             cursor.execute('''INSERT INTO messages
                                 (user_name1, message, user_name2)
-                                VALUES (?,?,?)''',
+                                VALUES (?,?,?,1)''',
                                (user_name1, message, user_name2))
             print('Пользователь {} написал {}.'.format(user_name1, user_name2))
         except sqlite3.DatabaseError as error:
