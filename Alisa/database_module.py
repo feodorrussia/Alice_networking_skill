@@ -215,7 +215,7 @@ class DatabaseManager:
         try:
             cursor.execute(f"""UPDATE sessions
                             SET {group} = ?
-                            WHERE user_name = ? """, (new, user_id))
+                            WHERE user_id = ? """, (new, user_id))
         except sqlite3.DatabaseError as error:
             print('       !!!!!!!!!!!!!!!!!Error: ', error)
             cursor.close()
