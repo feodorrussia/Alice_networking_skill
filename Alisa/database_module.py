@@ -22,6 +22,12 @@ class DatabaseManager:
                             message VARCHAR(128),
                             user_name2 VARCHAR(128),
                             status INTEGER)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS messages
+                                    (user_id VARCHAR(128),
+                                    global_status VARCHAR(50),
+                                    user_name VARCHAR(50),
+                                    recipient_name VARCHAR(50),
+                                    status_action VARCHAR(50))''')
         cursor.close()
 
     def __del__(self):
@@ -146,7 +152,7 @@ class DatabaseManager:
             cursor.execute('''INSERT INTO messages
                                 (user_name1, message, user_name2)
                                 VALUES (?,?,?,1)''',
-                               (user_name1, message, user_name2))
+                           (user_name1, message, user_name2))
             print('Пользователь {} написал {}.'.format(user_name1, user_name2))
         except sqlite3.DatabaseError as error:
             print('Error: ', error, '5')
@@ -160,13 +166,60 @@ class DatabaseManager:
         cursor = self.connection.cursor()
         try:
             cursor.execute(
-                    """SELECT * FROM messages WHERE user_name1 = :user_name1 AND user_name2 = :user_name2 OR user_name1 = :user_name2 AND user_name2 = :user_name1""",
-                    {'user_name1': user_name1, 'user_name2': user_name2})
+                """SELECT * FROM messages WHERE user_name1 = :user_name1 AND user_name2 = :user_name2 OR user_name1 = :user_name2 AND user_name2 = :user_name1""",
+                {'user_name1': user_name1, 'user_name2': user_name2})
         except sqlite3.DatabaseError as error:
             print('Error: ', error, '5')
             cursor.close()
             return [False, []]
         else:
-            dialog=cursor.fetchall()
+            dialog = cursor.fetchall()
             cursor.close()
             return [True, dialog]
+
+    def get_session(self, user_id='', all=False, group='*') -> list:
+        cursor = self.connection.cursor()
+        try:
+            if all:
+                cursor.execute(
+                    """SELECT user_id FROM sessions""")
+            else:
+                cursor.execute(
+                    """SELECT :col FROM sessions WHERE user_id = :user_id""",
+                    {'user_id': user_id, 'col': group})
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '5')
+            cursor.close()
+            return [False]
+        else:
+            dialog = cursor.fetchall()
+            cursor.close()
+            return [dialog]
+
+    def add_session(self, user_id):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(
+                '''INSERT INTO sessions (user_id, global_status, user_name, recipient_name, status_action) VALUES (?,"out","","","login")''',
+                (user_id))
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '5')
+            cursor.close()
+            return False
+        else:
+            cursor.close()
+            return True
+
+    def update_status_system(self, new, user_id, group='global_status'):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("""UPDATE sessions
+                            SET ? = ?
+                            WHERE user_name = ? """, (group, new, user_id))
+        except sqlite3.DatabaseError as error:
+            print('       !!!!!!!!!!!!!!!!!Error: ', error)
+            cursor.close()
+            return False
+        else:
+            cursor.close()
+            return True
