@@ -13,6 +13,7 @@ def handle_dialog(request, response, user_storage, database):
         user_storage = {'suggests': ['Помощь', 'Войти']}
         database.update_status(read_answers_data("data/status")['user_name'], 0)
         update_status_system('out')
+        update_status_system('login', 'status_action')
         return message_return(response, user_storage, output_message)
 
     if len(request.command.split(' ')) == 2 and read_answers_data("data/status")[
@@ -180,6 +181,14 @@ def handle_dialog(request, response, user_storage, database):
         update_status_system(request.command, 'recipient_name')
         return message_return(response, user_storage, output_message)
 
+    if 'напиши' in input_message and len(request.command.split(' ')) == 2 and read_answers_data("data/status")['status_action'] == 'working':
+        update_status_system(request.command.split(' ')[1], 'recipient_name')
+        output_message = 'Я готова, пишите сообщение!'
+        user_storage = {'suggests': ['Отмена', 'Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+        update_status_system('sending_letter', 'status_action')
+        update_status_system(request.command, 'recipient_name')
+        return message_return(response, user_storage, output_message)
+
     if read_answers_data("data/status")[
         'status_action'] == 'chatting' and input_message == 'распечатать историю диалога':
         user = read_answers_data("data/status")['user_name']
@@ -195,7 +204,7 @@ def handle_dialog(request, response, user_storage, database):
                     output_message += message[0] + ': ' + message[1] + '\n'
         else:
             output_message='Упс, что-то пошло не так)'
-        user_storage = {'suggests': ['Распечатать историю диалога','Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+        user_storage = {'suggests': ['Распечатать историю диалога', 'Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
         return message_return(response, user_storage, output_message)
 
     buttons, user_storage = get_suggests(user_storage)
