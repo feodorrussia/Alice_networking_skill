@@ -1,5 +1,4 @@
 # coding: utf-8
-# coding: utf-8
 from __future__ import unicode_literals
 from little_fuctions import *
 
@@ -12,7 +11,7 @@ def handle_dialog(request, response, user_storage, database):
     if input_message in ['выйти', 'выход']:
         output_message = "Обращайтесь ещё!)"
         user_storage = {'suggests': ['Помощь', 'Войти']}
-        database.update_status(0, request.user_id)
+        database.update_status(read_answers_data("data/status")['user_name'], 0)
         update_status_system('out')
         return message_return(response, user_storage, output_message)
 
@@ -23,24 +22,23 @@ def handle_dialog(request, response, user_storage, database):
             if database.get_registration(input_message[0], input_message[1])[1]:
                 output_message = "Добро пожаловать {}!".format(input_message[0])
                 user_storage = {'suggests': [
-                    'Друзья', 'Группы', 'Найти', 'Помощь', 'Выход'
+                    'Друзья', 'Группы', 'Найти', 'Написать сообщение', 'Помощь', 'Выход'
                 ]}
                 update_status_system('in')
                 update_status_system(input_message[0], 'user_name')
                 update_status_system('working', 'status_action')
             else:
                 output_message = "Упс! Похоже Вы неправильно ввели свои данные. Попробуйте ещё раз)"
-            return message_return(response, user_storage, output_message)
         else:
             database.add_user(input_message[0], input_message[1])
             output_message = "Добро пожаловать {}!".format(input_message[0])
             user_storage = {'suggests': [
-                'Друзья', 'Группы', 'Найти', 'Помощь', 'Выход'
+                'Друзья', 'Группы', 'Найти', 'Написать сообщение', 'Помощь', 'Выход'
             ]}
             update_status_system('in')
             update_status_system(input_message[0], 'user_name')
             update_status_system('working', 'status_action')
-            return message_return(response, user_storage, output_message)
+        return message_return(response, user_storage, output_message)
 
     if request.is_new_session or input_message in ['войти', 'регистрация']:
         output_message = "Здравствуйте, Вас приветствует Ваш коммуникатор Адель." \
@@ -51,7 +49,7 @@ def handle_dialog(request, response, user_storage, database):
         return message_return(response, user_storage, output_message)
 
     if input_message == 'помощь':
-        update_status_system('help')
+        update_status_system('help', 'status_action')
         output_message = "Привет! Я Адель, Ваш коммуникатор. Я помогу Вам отправить сообщение " \
                          "Вашему другу или разместить его в группе."
         user_storage = {'suggests': ['Мои возможности', 'Команды быстрого ввода', 'Главная']}
@@ -60,11 +58,10 @@ def handle_dialog(request, response, user_storage, database):
 
     if input_message in ['главная', 'отбой, давай на главную']:
         output_message = "Прошу)"
-        update_status_system('in')
         if read_answers_data("data/status")['global_status'] == 'out':
             user_storage = {'suggests': ['Помощь', 'Войти']}
         else:
-            user_storage = {'suggests': ['Друзья', 'Группы', 'Найти', 'Помощь', 'Выход']}
+            user_storage = {'suggests': ['Друзья', 'Группы', 'Найти', 'Написать сообщение', 'Помощь', 'Выход']}
         update_status_system('working', 'status_action')
         return message_return(response, user_storage, output_message)
 
@@ -72,7 +69,7 @@ def handle_dialog(request, response, user_storage, database):
         'global_status'] == 'in':
         friendship = database.get_friendship(read_answers_data("data/status")['user_name'])
         if friendship[0]:
-            output_message = "Ваши друзья:\n" + '\n'.join([x[0] for x in friendship[1][0]])
+            output_message = "Ваши друзья:\n" + '\n'.join([x[1]+f'{" (в сети)" if database.get_user(x[1])[1][0][2] == 1 else " (не в сети)"}' for x in friendship[1]])
             user_storage = {'suggests': ['Написать сообщение', 'Найти', 'Главная']}
         else:
             output_message = "Похоже у Вас нет друзей.(\nНо вы их всегда можете найти)"
@@ -88,7 +85,8 @@ def handle_dialog(request, response, user_storage, database):
         return message_return(response, user_storage, output_message)
 
     if read_answers_data("data/status")['status_action'] == 'searching' and input_message in [
-        'человека', 'найди человека', 'друга', 'найди друга']:
+        'человека','друга'] or read_answers_data("data/status")['status_action'] == 'working' and input_message in [
+        'найди человека','найди друга']:
         output_message = "Хорошо.\nСкажите мне его имя его учётной записи(логин в системе)"
         user_storage = {'suggests': ['Главная', 'Отмена']}
         update_status_system('searching_user', 'status_action')
@@ -120,7 +118,7 @@ def handle_dialog(request, response, user_storage, database):
             if result:
                 output_message = f'''Отлично! Теперь у Вас в друзьях есть {
                 read_answers_data("data/status")['recipient_name']}\nХотите написать ему?'''
-                user_storage = {'suggests': ['Да', 'Нет', 'Главная']}
+                user_storage = {'suggests': ['Да', 'Нет']}
                 update_status_system('end_adding', 'status_action')
             else:
                 output_message = f'''У меня для Вас хорошая новость-{
@@ -179,24 +177,25 @@ def handle_dialog(request, response, user_storage, database):
         output_message = 'Я готова, пишите сообщение!'
         user_storage = {'suggests': ['Отмена', 'Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
         update_status_system('sending_letter', 'status_action')
+        update_status_system(request.command, 'recipient_name')
         return message_return(response, user_storage, output_message)
 
     if read_answers_data("data/status")[
-        'status_action'] == 'chatting' and input_message == 'распечатать историю сообщений':
+        'status_action'] == 'chatting' and input_message == 'распечатать историю диалога':
         user = read_answers_data("data/status")['user_name']
         recipient = read_answers_data("data/status")['recipient_name']
-        dialog = database.get_dialog(user, request.command, recipient)
+        dialog = database.get_dialog(user, recipient)
         print('    dialog:!!!   ', dialog)
         output_message = ''
         if dialog[0]:
-            for message in dialog[1][0]:
+            for message in dialog[1]:
                 if message[0] == user:
-                    output_message += 'Вы: ' + message[1]
+                    output_message += 'Вы: ' + message[1] + '\n'
                 else:
-                    output_message += message[0] + ': ' + message[1]
+                    output_message += message[0] + ': ' + message[1] + '\n'
         else:
             output_message='Упс, что-то пошло не так)'
-        user_storage = {'suggests': ['Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
+        user_storage = {'suggests': ['Распечатать историю диалога','Друзья', 'Группы', 'Найти', 'Помощь', 'Главная']}
         return message_return(response, user_storage, output_message)
 
     buttons, user_storage = get_suggests(user_storage)
