@@ -177,6 +177,35 @@ class DatabaseManager:
             cursor.close()
             return [True, dialog]
 
+    def get_new_message(self, user_name1):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(
+                """SELECT * FROM messages WHERE user_name2 = :user_name1 AND status = 1""",
+                {'user_name1': user_name1})
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '9')
+            cursor.close()
+            return [False, []]
+        else:
+            dialog = cursor.fetchall()
+            cursor.close()
+            return [True, dialog]
+
+    def update_status_message(self, user_name1, user_name2):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(
+                """UPDATE sessions SET status = 0 WHERE user_name1 = :user_name1 AND user_name2 = :user_name2 OR user_name1 = :user_name2 AND user_name2 = :user_name1""",
+                {'user_name1': user_name1, 'user_name2': user_name2})
+        except sqlite3.DatabaseError as error:
+            print('Error: ', error, '8')
+            cursor.close()
+            return False
+        else:
+            cursor.close()
+            return True
+
     def get_session(self, user_id='', group='*', all=False) -> list:
         cursor = self.connection.cursor()
         try:

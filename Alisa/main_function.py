@@ -23,10 +23,17 @@ def handle_dialog(request, response, user_storage, database):
         input_message = request.command.split(' ')
         if database.get_registration(input_message[0], input_message[1])[0]:
             if database.get_registration(input_message[0], input_message[1])[1]:
-                output_message = "Добро пожаловать {}!".format(input_message[0])
-                user_storage = {'suggests': [
-                    'Друзья', 'Группы', 'Найти', 'Написать сообщение', 'Помощь', 'Выход'
-                ]}
+                new_message = database.get_new_message(input_message[0])
+                if len(new_message) > 0:
+                    output_message = "Добро пожаловать {}!\nУ Вас {} непрочитанных сообщений.".format(input_message[0], len(new_message))
+                    user_storage = {'suggests': [
+                        'Посмотреть сообщения', 'Друзья', 'Группы', 'Найти', 'Написать сообщение', 'Помощь', 'Выход'
+                    ]}
+                else:
+                    output_message = "Добро пожаловать {}!\nУ Вас нет непрочитанных сообщений.".format(input_message[0])
+                    user_storage = {'suggests': [
+                        'Друзья', 'Группы', 'Найти', 'Написать сообщение', 'Помощь', 'Выход'
+                    ]}
                 database.update_status_system('in', request.user_id)
                 database.update_status_system(input_message[0], request.user_id, 'user_name')
                 database.update_status_system('working', request.user_id, 'status_action')
