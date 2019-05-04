@@ -20,7 +20,7 @@ def handle_dialog(request, response, user_storage, database):
         database.update_status_system('login', request.user_id, 'status_action')
         return message_return(response, user_storage, output_message)
 
-    if len(request.command.split(' ')) == 2 and database.get_session(request.user_id, 'global_status')[0] == 'out':
+    if len(request.command.split(' ')) == 2 and database.get_session(request.user_id, 'status_action')[0] == 'login':
         input_message = request.command.split(' ')
         if database.get_registration(input_message[0], input_message[1])[0]:
             if database.get_registration(input_message[0], input_message[1])[1]:
@@ -63,8 +63,10 @@ def handle_dialog(request, response, user_storage, database):
     if input_message in ['главная', 'отбой, давай на главную']:
         output_message = "Прошу)"
         if database.get_session(request.user_id, 'global_status')[0] == 'out':
+            database.update_status_system('out', request.user_id)
             user_storage = {'suggests': ['Помощь', 'Войти']}
         else:
+            database.update_status_system('in', request.user_id)
             user_storage = {'suggests': ['Друзья', 'Группы', 'Найти', 'Написать сообщение', 'Помощь', 'Выход']}
         database.update_status_system('working', request.user_id, 'status_action')
         return message_return(response, user_storage, output_message)
