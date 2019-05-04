@@ -7,7 +7,6 @@ def handle_dialog(request, response, user_storage, database):
     if not user_storage:
         user_storage = {"suggests": ['Помощь']}
     input_message = request.command.lower()
-    print("           result111000       ", database.get_session(all=True))
 
     if request.user_id not in database.get_session(all=True):
         database.add_session(request.user_id)
@@ -72,7 +71,7 @@ def handle_dialog(request, response, user_storage, database):
         return message_return(response, user_storage, output_message)
 
     if input_message in ['друзья', 'вернись в друзья'] and database.get_session(request.user_id, 'global_status')[0] == 'in':
-        friendship = database.get_friendship(read_answers_data("data/status")['user_name'])
+        friendship = database.get_friendship(database.get_session(request.user_id, 'user_name')[0])
         if friendship[0]:
             output_message = "Ваши друзья:\n" + '\n'.join([x[1]+f'{" (в сети)" if database.get_user(x[1])[1][0][2] == 1 else " (не в сети)"}' for x in friendship[1]])
             user_storage = {'suggests': ['Написать сообщение', 'Найти', 'Главная']}
@@ -124,7 +123,7 @@ def handle_dialog(request, response, user_storage, database):
             else:
                 output_message = f'''У меня для Вас хорошая новость-{
                 database.get_session(request.user_id, 'recipient_name')[0]} уже есть у Вас в друзьях!Хотите написать ему?'''
-                user_storage = {'suggests': ['Да', 'Нет', 'Главная']}
+                user_storage = {'suggests': ['Да', 'Нет']}
                 database.update_status_system('end_adding', request.user_id, 'status_action')
         else:
             output_message = 'Хорошо, рада была помочь Вам!'
@@ -187,6 +186,7 @@ def handle_dialog(request, response, user_storage, database):
     if database.get_session(request.user_id, 'status_action')[0] == 'chatting' and input_message == 'распечатать историю диалога':
         user = database.get_session(request.user_id, 'user_name')[0]
         recipient = database.get_session(request.user_id, 'recipient_name')[0]
+        print(user, recipient)
         dialog = database.get_dialog(user, recipient)
         print('    dialog:!!!   ', dialog)
         output_message = ''

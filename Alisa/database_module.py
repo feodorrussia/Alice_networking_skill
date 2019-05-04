@@ -119,7 +119,7 @@ class DatabaseManager:
             result = [False, True]
         else:
             friendship = cursor.fetchall()
-            if len(friendship) == 1:
+            if len(friendship) > 1:
                 result = [True, friendship]
             else:
                 result = [False, True]
@@ -130,7 +130,7 @@ class DatabaseManager:
     def add_friendship(self, user_name1, user_name2):
         cursor = self.connection.cursor()
         try:
-            if not self.get_friendship(user_name1)[0]:
+            if not self.get_friendship(user_name1)[0] or user_name2 not in [x[1] for x in self.get_friendship(user_name1)[1]]:
                 cursor.execute('''INSERT INTO friends
                                   (user_name1, user_name2)
                                   VALUES (?,?)''',
@@ -150,7 +150,7 @@ class DatabaseManager:
         cursor = self.connection.cursor()
         try:
             cursor.execute('''INSERT INTO messages
-                                (user_name1, message, user_name2)
+                                (user_name1, message, user_name2, status)
                                 VALUES (?,?,?,1)''',
                            (user_name1, message, user_name2))
             print('Пользователь {} написал {}.'.format(user_name1, user_name2))
@@ -189,7 +189,7 @@ class DatabaseManager:
                     {'user_id': user_id})
                 dialog = cursor.fetchall()[0]
         except sqlite3.DatabaseError as error:
-            print('Error: ', error, '5')
+            print('Error: ', error, '7')
             cursor.close()
             return [False]
         else:
